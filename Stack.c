@@ -19,6 +19,7 @@ bool empty(Prj *m2);
 bool push(Prj *m2, int value);
 bool pop(Prj *m2, int *value);
 bool peek(Prj *m2, int *value);
+bool dam(Prj *m2, int *value, int a);
 
 int main(void){
 
@@ -27,17 +28,18 @@ int main(void){
     int aPop = 0;
     int counter = 0;
     int choice;
-    printf("\033[1;32m[\033[1;37m!\033[0m\033[1;32m] \033[0mSTACK PROJECT\n\n");
+    int size = 0;
+    printf("\033[1;32m[\033[1;37m!\033[0m\033[1;32m] \033[0mSTACK PROJECT from 𝖗𝖎𝖚𝖌𝖝𝖘\n\n");
     printf("Enter a size for \033[1;32myour container: \033[0m");
     scanf("%d", &c2);
     Prj *var = main1(c2);
     if (var == NULL){
-        printf("There was an issue..");
+        printf("A \033[1;31mproblem\033[0m occured.. ");
         free(var);
         return 1;
     }
-    while (choice != 4){
-    printf("\n1\033[1;32m)\033[0mPUSH ITEM\n2\033[1;32m)\033[0mPOP ITEM\n3\033[1;32m)\033[0mPEEK ITEM\n4\033[1;32m)\033[0mEXIT\n\n");
+    while (choice != 5){
+    printf("\n1\033[1;32m)\033[0mPUSH ITEM\n2\033[1;32m)\033[0mPOP ITEM\n3\033[1;32m)\033[0mPEEK ITEM\n4\033[1;32m)\033[0mADD MEMORY\n5\033[1;32m)\033[0mEXIT\n\n");
     scanf("%d", &choice);
     switch (choice)
     {
@@ -49,12 +51,12 @@ int main(void){
         printf("Enter the number to \033[1;32mpush: \033[0m");
         scanf("%d", &ps);
         push(var, ps);
-        printf("Number pushed: %d\n", ps);
+        printf("Number \033[1;32mpushed: \033[0m%d\n", ps);
 
         break;
     case 2:
     if (empty(var)){
-        printf("\nThe list is \033[1;32mempty..\033[0m");
+        printf("\nThe list is \033[1;32mempty..\033[0m\n");
         break;
     }
         pop(var, &aPop);
@@ -70,6 +72,16 @@ int main(void){
         }
         break;
     case 4:
+        printf("Enter a \033[1;32mnumber\033[0m for adding memory: ");
+        scanf("%d", &size);
+        if (var->container >= 30){
+            printf("\033[1;31m[\033[1;37m!\033[1;31m]\033[0m \033[1;37mMax limit reached[30]\n\033[0m");
+            break;
+        }
+        dam(var, var->list, size);
+        printf("\n+%d memory \033[1;32mcontainer\033[0m\n", size);
+        break;
+    case 5:
         printf("Thank \033[1;32myou\033[0m for using.");
         return 0;
         break;
@@ -129,3 +141,10 @@ bool peek(Prj *m2, int *value){
     *value = m2->list[m2->size - 1];
     return true;
 }
+bool dam(Prj *m2, int *value, int a){
+    value = realloc(value, sizeof(int)*a);
+    m2->container+=a;
+    return true;
+}
+
+//.
