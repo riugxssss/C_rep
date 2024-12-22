@@ -20,7 +20,7 @@ typedef struct
 }scan;
 
 void* scan_port(void *m3){
-    scan *data = malloc(sizeof(scan));
+    scan *data = (scan*)m3;
     int sock;
     struct sockaddr_in v1;
 
@@ -31,8 +31,13 @@ void* scan_port(void *m3){
     }
 
     v1.sin_family = AF_INET;
-    v1.sin_family = htons(data->port);
-    inet_pton(AF_INET, data->ipaddr, &v1.sin_addr);
+    v1.sin_port = htons(data->port);
+    if (inet_pton(AF_INET, data->ipaddr, &v1.sin_addr) <= 0){
+        perror("Error converting the IP");
+        close(sock);
+        free(scan);
+        pthread_exit(NULL);
+    }
 
     if (connect(sock, (struct sockaddr*)&v1, sizeof(v1)) == 0){
         pthread_mutex_lock(&mutex);
