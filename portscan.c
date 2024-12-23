@@ -10,8 +10,10 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+sem_t phore;
 
 typedef struct 
 {
@@ -35,7 +37,7 @@ void* scan_port(void *m3){
     if (inet_pton(AF_INET, data->ipaddr, &v1.sin_addr) <= 0){
         perror("Error converting the IP");
         close(sock);
-        free(scan);
+        free(data);
         pthread_exit(NULL);
     }
 
@@ -48,6 +50,7 @@ void* scan_port(void *m3){
 
     close(sock);
     free(data);
+    sem_post(&phore);
     pthread_exit(NULL);
 }
 
@@ -67,6 +70,7 @@ int main(){
         return 1;
     }
 
+    sem_init(&phore, 0, max_port);
     pthread_t threads[max_port];
 
     time_t current = time(NULL);
@@ -82,6 +86,8 @@ int main(){
         strcpy(data->ipaddr, ip);
         data->port = i;
 
+        sem_wait(&phore);
+
         if (pthread_create(&threads[number_threads], NULL, scan_port, (void*)data) != 0){
             perror("Failed to create the thread");
             return 1;
@@ -96,14 +102,10 @@ int main(){
             number_threads = 0;
         }
     }
-    for (int i=0; i<number_threads; i++){
-        pthread_join(threads[i], NULL);
-    }
-
     time_t end = time(NULL);
     double elpsd = difftime(end, current);
     printf("Scanning completed in %.2f seconds \033[0m", elpsd);
 
-
+    sem_destroy(&phore)
     return 0;
 }
