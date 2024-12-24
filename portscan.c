@@ -1,4 +1,4 @@
-//Riugxs port scanner V1 mutex, semaphore and poolthread usage, with logs
+//Riugxs port scanner V1 mutex, semaphore and poolthread usage, with log scan
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -66,8 +66,8 @@ void* scan_port(void *m3) {
         pthread_mutex_unlock(&mutex);
     }
 
-    close(sock);
     free(data);
+    close(sock);
     sem_post(&sema);
     pthread_exit(NULL);
 }
@@ -90,7 +90,7 @@ int main() {
     printf("Enter the max port: ");
     scanf("%d", &max_port);
 
-    sem_init(&sema, 0, max_port);
+    sem_init(&sema, 0, pool_thread);
 
     if (max_port < 0 || max_port > 65535) {
         perror("Out of the Range ");
