@@ -1,4 +1,4 @@
-//Riugxs port scanner V1 mutex, semaphore and poolthread usage, with log scan
+//Riugxs port scanner V1 mutex, semaphore and poolthread usage, with log scan and timeout
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -11,6 +11,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <errno.h>
 #define MAX 100
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -20,6 +21,7 @@ pthread_t thread_pool[MAX];
 typedef struct {
     int port;
     char ipaddr[100];
+    int timeout;
 } scan;
 
 
@@ -40,13 +42,23 @@ void* scan_port(void *m3) {
     scan *data = (scan*)m3;
     int sock;
     struct sockaddr_in v1;
+    struct timeval test;
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
         perror("Error creating the socket");
         pthread_exit(NULL);
     }
+    
 
+    
+    test.tv_sec = data->timeout;
+    test.tv_usec = 0;
+    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &test, sizeof(test)) < 0){
+        perror("Error setting the timeout");
+        close(sock);
+        pthread_exit(NULL);
+    }
     v1.sin_family = AF_INET;
     v1.sin_port = htons(data->port);
     if (inet_pton(AF_INET, data->ipaddr, &v1.sin_addr) <= 0) {
@@ -75,14 +87,13 @@ void* scan_port(void *m3) {
 void* thread_pool_worker(void* arg) {
     scan *data = (scan*)arg;
     scan_port((void*)data); 
-
-    return NULL;
 }
 
 int main() {
     int max_port;
     char ip[100];
     int pool_thread = 10;
+    int timeout_scan;
 
     printf("\033[1;35m▌│█║▌║▌║ \033[1;37m𝗣𝗢𝗥𝗧 𝗦𝗖𝗔𝗡𝗡𝗘𝗥 \033[1;35m║▌║▌║█│▌\t\t\033[1;35m[\033[1;37m!\033[1;35m]\033[1;37mRiugxss\n  \t\t\t\t\t\033[1;35m[\033[1;37m!\033[1;35m]\033[1;37mGitHub: \033[1;37mRiugxssss\n\n\n");
     printf("Enter the IP address: ");
@@ -96,6 +107,9 @@ int main() {
         perror("Out of the Range ");
         return 1;
     }
+
+    printf("Enter a timeout for the connect scan: (es: 1s, 2s..): ");
+    scanf("%d", &timeout_scan);
 
     time_t current = time(NULL);
     printf("Scanning the IP: %s \nAt: %s", ip, ctime(&current));
