@@ -45,7 +45,7 @@ int main(){
     while (true){
         printf("Send a message (exit for quit) " );
         fgets(mess, sizeof(mess), stdin);
-        mess[strcspn(mess, "\n") == 0];
+        mess[strcspn(mess, "\n")] = '\0'
 
         if (strcmp(mess, "exit") == 0){
             printf("Connetions interrupted");
