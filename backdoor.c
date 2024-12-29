@@ -139,7 +139,7 @@ int isvalid(char *ip){
 int main(){
     info *data = malloc(sizeof(info));
     if (data == NULL){
-        perror("Error with the DAM\m");
+        perror("Error with the DAM\n");
         return 1;
     }
 
