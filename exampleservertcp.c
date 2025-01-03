@@ -74,7 +74,7 @@ int server(info *data){
         return 1;
     }
 
-    printf("Message sended by the client: %s\n", message);
+    printf("Message sended to the client: %s\n", message);
 
     
     close(cosk);
