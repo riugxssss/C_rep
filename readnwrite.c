@@ -17,7 +17,7 @@ int main(){
 
     FILE *test;
 
-    test = fopen("negro.txt", "r");
+    test = fopen("test1.txt", "r");
     if (test == NULL){
         fprintf(stderr, "Error opening the file\n");
         return 1;
