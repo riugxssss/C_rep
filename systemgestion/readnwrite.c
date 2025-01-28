@@ -5,7 +5,7 @@
 [!] INFO
 
 Example program to read a file in your system and write on another
-file, view the file gestion project to implement some technique to use C with
+file, view the file gestion project to implement some technique using C with
 POSIX libraries
 
 by riugxss   
