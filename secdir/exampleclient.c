@@ -1,110 +1,163 @@
-//Client TCP from riugxss
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
 #include <arpa/inet.h>
-#include <dirent.h>
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <wait.h>
-#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <stdbool.h>
+#include <getopt.h>
+
 #define BUFFER 1024
 
-typedef struct 
+typedef struct
 {
-    int portForServer;
-    char LOCAL_address[200];
-}info;
+    int port_main;
+    char local_address[200];
+} info;
 
 int client(info *data){
-    int server_sock;
-    struct sockaddr_in  addr;
-    char buffer[BUFFER];
-    char messageFromClient[BUFFER];
+    struct sockaddr_in server_addr;
+    int socketToConn;
+    size_t bytes_recv, bytes_send;
+    char message[BUFFER], buffer[BUFFER];
+    char *stringmess = "quit";
 
-    server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_sock != 0){
-        fprintf(stderr, "Error with the server socket\n");
+    if ((socketToConn = socket(AF_INET, SOCK_STREAM, 0)) == -1){
+        fprintf(stderr, "Error: %s", strerror(errno));
         free(data);
-        return 1;
-    }
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(data->portForServer);
-    if (inet_pton(AF_INET, data->LOCAL_address, &addr.sin_addr) != 0){
-        fprintf(stderr, "Error converting the IP address\n");
-        free(data);
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
-    if (connect(server_sock, (struct sockaddr*)&addr, sizeof(addr)) != 0){
-        fprintf(stderr, "Error connectin to the IP: %s", data->LOCAL_address);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(data->port_main);
+    if (inet_pton(AF_INET, data->local_address, &server_addr.sin_addr) == -1){
+        fprintf(stderr, "Error: %s", strerror(errno));
         free(data);
-        return 1;
+        close(socketToConn);
+        return -1;
     }
 
-    printf("Connection from: %s | %d", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+    if (connect(socketToConn, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1){
+        fprintf(stderr, "Error: %s", strerror(errno));
+        free(data);
+        close(socketToConn);
+        return -1;
+    }
 
-    size_t bytes_sent;
-    size_t bytes_recv;
-    printf("Send a message to the server (quit for leave)\n");    
-    while (bytes_sent > 0 && bytes_recv > 0){
-        fgets(messageFromClient, sizeof(messageFromClient), stdin);
+    printf("Connected to the server\nINFO:\nIP: %s\nPORT: %d\n", data->local_address, data->port_main);
 
-        messageFromClient[strcspn(messageFromClient, "\n")] = '\0';
-        if (strcmp(messageFromClient, "quit") == 0){
+    printf("Write a message to the server! (quit to leave)\n");
+
+    while (true) {
+         if (strncmp(message, stringmess, strlen(stringmess)) == 0){
             printf("Exiting..\n");
             free(data);
+            close(socketToConn);
             exit(EXIT_SUCCESS);
-        }
-        
-        bytes_sent= send(server_sock, messageFromClient, strlen(messageFromClient), 0);
-        if (bytes_sent < 0){
-            fprintf(stderr, "Error sending the byte\n");
+         }
+        printf("Enter a message: ");
+        fgets(message, sizeof(message), stdin);
+
+        message[strcspn(message, "\n")] = '\0';
+
+        bytes_send = send(socketToConn, message, BUFFER, 0);
+        if (bytes_send == -1){
+            fprintf(stderr, "Error: %s", strerror(errno));
             free(data);
-            return 1;
+            close(socketToConn);
+            exit(EXIT_FAILURE);
         }
 
         memset(buffer, 0, BUFFER);
-        bytes_recv = recv(server_sock, buffer, BUFFER, 0);
-        if (bytes_recv < 0){
-            fprintf(stderr, "Error receiving the data from the serv\n");
+
+        bytes_recv = recv(socketToConn, buffer, BUFFER, 0);
+        if (bytes_recv == -1){
+            fprintf(stderr, "Error: %s", strerror(errno));
             free(data);
-            return 1;
+            close(socketToConn);
+            exit(EXIT_FAILURE);
         }
-        printf("The server response: %s\n", buffer);
+
+        printf("Message from the server is: %s\n", buffer);
     }
 
-    close(server_sock); 
     free(data);
-
-    return 0;
+    close(socketToConn);
 }
-int main(){
+
+void print_help(){
+    printf("Usage: CLIENT [OPTIONS]\n");
+    printf("Options:\n");
+    printf("  -h, --help           Show this help message and exit\n");
+    printf("  -g, --github         Show the GitHub account\n");
+    printf("  -p, --port           Specify the port to connect to\n");
+    printf("  -a, --address        Specify the IP address to connect\n");
+    printf("\n");
+}
+
+int main(int argc, char **argv){
+    int port;
+    char IP_addr[196];
+    int var_parse;
+
+
     info *data = malloc(sizeof(info));
     if (data == NULL){
-        fprintf(stderr, "Error allocating the memory\n");
+        fprintf(stderr, "Failed allocating the memory\n");
+        return 1;
+    }
+
+    struct option parse[] = {
+        {"help", no_argument, 0, 'h'},
+        {"port", required_argument, 0, 'p'},
+        {"address", required_argument, 0, 'a'},
+        {"github", no_argument, 0, 'g'},
+        {0,0,0,0}
+    };
+
+    while ((var_parse = getopt_long(argc, argv, "hp:a:g", parse, NULL)) != -1){
+        switch (var_parse)
+        {
+        case 'h':
+            printf("HELP INFO:\n");
+            print_help();
+            exit(EXIT_SUCCESS);
+            break;
+        case 'p':
+            port = atoi(optarg); 
+            break;
+        case 'a':
+            strncpy(IP_addr, optarg, sizeof(IP_addr) - 1);  
+            IP_addr[sizeof(IP_addr) - 1] = '\0';  
+            break;
+        case 'g':
+            printf("GitHub: https://github.com/riugxssss\n");
+            printf("All my projects in C -> C_rep\n");
+            exit(EXIT_SUCCESS);
+            break;
+        default:
+            print_help();
+            exit(EXIT_FAILURE);
+            break;
+        }
+    }
+
+    if (port < 1 || port > 65535){
+        fprintf(stderr, "The port is out of the range\n");
         free(data);
         return 1;
     }
-    char ipaddr[150];
-    int port;
-    printf("Enter the port to connect: ");
-    scanf("%d", port);
-    if (port < 0 || port > 65535){
-        fprintf(stderr, "Port out of the range (1-65535)\n");
-        return 1;
-    }
-    printf("Enter the IP address: %d");
-    scanf("%s", ipaddr);
 
-    data->portForServer = port;
-    strncpy(data->LOCAL_address, ipaddr, sizeof(ipaddr) +1);
+    data->port_main = port;
+    strncpy(data->local_address, IP_addr, sizeof(data->local_address) - 1);
+    data->local_address[sizeof(data->local_address) - 1] = '\0';  
 
-    printf("Press enter to start the client..\n");
+    printf("Press enter to start the client\n");
     getchar();
+    printf("Started..\n");
+    client(data);
 
     free(data);
+    return 0;
 }
