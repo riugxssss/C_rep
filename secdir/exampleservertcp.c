@@ -1,105 +1,149 @@
-//Server TCP from riugxss 
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
-#include <dirent.h>
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <wait.h>
-#include <sys/stat.h>
+#include <errno.h>
+#include <unistd.h>
+#include <stdbool.h>
+#include <getopt.h>
+
+#define BACKLOG 5
 #define BUFFER 1024
 
-typedef struct
-{
-    int port;
-}info;
+void print_help(){
+    printf( "Usage: SERVER [OPTIONS]\n");
+    printf( "Options:\n");
+    printf( "  -h, --help           Show this help message and exit\n");
+    printf( "  -g, --github         Show the GitHub account\n");
+    printf( "  -p, --port           Specify the port to host\n");
+    printf( "\n");
 
-int server(info *data){
+}
 
-    int sock, cosk;
-    struct sockaddr_in a, b;
-    char buffer[BUFFER];
+int serverfunc(int port_connect){
+    struct sockaddr_in server_addr, client_addr;
+    int serv_sock, client_sock;
+    char ip_str[INET6_ADDRSTRLEN];
+    char buffer[1024];
+    char messageFor_client[BUFFER] = "DDos this server";
+    size_t bytes_recv, bytes_send;
+    char *stringmess = "quit";
 
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock != 0){
-        fprintf(stderr, "Error with the socket");
-        
+   if((serv_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1){
+        printf("Error: %s", strerror(errno));
+        return 1;
+   }
+
+   server_addr.sin_family = AF_INET;
+   server_addr.sin_port = htons(port_connect);
+   server_addr.sin_addr.s_addr = INADDR_ANY;
+
+   if (bind(serv_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1){
+    fprintf(stderr, "Failed to associating the port to the socket! Error: %s\n", strerror(errno));
+    close(serv_sock);
+    return 1;
+   }
+
+   if (listen(serv_sock, BACKLOG) != 0){
+        printf("Error: %s", strerror(errno));
+        printf("Code type: %d", errno);
+        close(serv_sock);
+        exit(EXIT_FAILURE);
+   }
+
+   printf("Connected on port: %d\n", port_connect);
+
+    socklen_t sizelenaddress = sizeof(client_addr.sin_addr);
+   if ((client_sock= accept(serv_sock, (struct sockaddr*)&client_addr, &sizelenaddress)) == -1){
+        printf("Error: %s", strerror(errno));
+   }
+
+    if (inet_ntop(AF_INET, &client_addr.sin_addr, ip_str, sizeof(ip_str)) == NULL){
+        printf("Error: %s", strerror(errno));
+        close(serv_sock);
+        close(client_sock);
         return 1;
     }
+    printf("Connection accepted: %s | %d\n", ip_str, ntohs(client_addr.sin_port));
 
-    a.sin_addr.s_addr = INADDR_ANY;
-    a.sin_family = AF_INET;
-    a.sin_port = htons(data->port);
-
-    if (bind(sock, (struct sockaddr*)&a, sizeof(a)) !=0 ){
-        fprintf(stderr, "Error associating the port with the socket");
-        free(data);
+    memset(buffer, 0, sizeof(buffer));
+    while (true){
+    bytes_recv = recv(client_sock, buffer, BUFFER, 0);
+    if (bytes_recv == -1){
+        fprintf(stderr, "Error: %s", strerror(errno));
+        fprintf(stderr, "Code type error: %d", errno);
+        close(serv_sock);
+        close(client_sock);
         return 1;
+    } else if (bytes_recv == 0){
+        printf("Client disconnected..\n");
+        break;
     }
-    if (listen(sock, 3) == -1){
-        fprintf(stderr, "Error the listening on port: %d", data->port);
-        free(data);
-        return 1;
+        if (strncmp(buffer, stringmess, strlen(stringmess)) == 0){
+        send(client_sock, "Bye from the server!", BUFFER, 0);
+        close(client_sock);
+        close(serv_sock);
+        exit(EXIT_SUCCESS);
     }
-    printf("Successfull connession on port: %d", data->port);
+        printf("Message from the client: %s\n", buffer);
 
-    socklen_t lenaddr = sizeof(b.sin_addr);
-    cosk = accept(sock, (struct sockaddr*)&b, &lenaddr);
-    if (cosk != 0){
-        fprintf(stderr, "Error with the socket client");
-        free(data);
-        return 1;
-    }
-
-    printf("Connection from: %s | %d", inet_ntoa(b.sin_addr), ntohs(b.sin_port));
-
-    memset(buffer, 0, BUFFER);
-    size_t buffer_recv = recv(cosk, buffer, BUFFER, 0);
-    if (buffer_recv <= 0){
-        fprintf(stderr, "Error with recv");
-        free(data);
-        return 1;
-    }
-    printf("Message from the client: %s", buffer);
-    size_t bytes_send;
-    char *message = "Hi from the server!;";
-    bytes_send = send(cosk, message, strlen(message), 0);
+    bytes_send = send(client_sock, messageFor_client, BUFFER, 0);
     if (bytes_send == -1){
-        fprintf(stderr, "Error sending the message");
-        free(data);
+        printf("Error: %s", strerror(errno));
+        printf("Code type error: %d", errno);
+        close(serv_sock);
+        close(client_sock);
         return 1;
     }
-
-    printf("Message sended to the client: %s\n", message);
-
-    
-    close(cosk);
-    close(sock);
-    free(data);
+    }
     return 0;
 }
-int main(){
-    info *data = malloc(sizeof(info));
-    if (data == NULL){
-        fprintf(stderr, "Error allocating memory");
-        return 1;
+int main(int argc, char **argv){
+    int var_parse;
+    int port;
+    if (argc < 2){
+        printf("Missing requirment argument <port>\n");
+        exit(EXIT_FAILURE);
     }
 
-    int portToServer;
-    printf("Enter the port for host the server: ");
-    scanf("%d", portToServer);
-
-    if (portToServer < 0 || portToServer > 65535){
-        fprintf(stderr, "Port out of the range (1-65535)\n");
+    
+    struct option parse[] = {
+        {"help", no_argument, 0, 'h'},
+        {"port", required_argument, 0, 'p'},
+        {"github", no_argument, 0, 'g'},
+        {0,0,0,0}
+    };
+    while ((var_parse = getopt_long(argc, argv, "hp:g", parse, NULL)) != -1){
+        switch (var_parse)
+        {
+        case 'h':
+            printf("HELP INFO:\n");
+            print_help();
+            exit(EXIT_SUCCESS);
+            break;
+        case 'p':
+            port = atoi(optarg);
+            break;
+        case 'g':
+            printf("GitHub: https://github.com/riugxssss\n");
+            printf("All my projects in C -> C_rep\n");
+            exit(EXIT_SUCCESS);
+            break;
+        default:
+            print_help();
+            exit(EXIT_SUCCESS);
+            break;
+        }
     }
-    data->port = portToServer;
-    printf("Press enter to start the server..\n");
+     if (port <= 0 || port > 65355){
+        fprintf(stderr, "Port out of the range\n");
+        exit(EXIT_FAILURE);
+    }
+    printf("Press enter to start the server\n");
     getchar();
-    server(data);
-    free(data);
+    printf("Started..\n");
+    serverfunc(port);
+
     return 0;
 }
