@@ -59,6 +59,7 @@ int main()
     char command[MAX_LENGHT];
     char exitkey[5] = "exit";
     char bufferNAME[20];
+    char commancopy[MAX_LENGHT];
     for (int i =0 ; i<27;i++){
         array[i] = '-';
     }
@@ -89,12 +90,13 @@ int main()
             printf(RED"<exit command>\n"RESET);
             exit(0);
         }
+        strncpy(commancopy, command, MAX_LENGHT);
         char *tokens =strtok(command, " ");
 
         if (strcmp(tokens, "cd")== 0){
             tokens = strtok(NULL, " ");
             chgdir(tokens);
-        }else exec_command(command);
+        }else exec_command(commancopy);
     }
     return 0;
 }
