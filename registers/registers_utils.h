@@ -15,6 +15,9 @@ static inline uint32_t set_bit32(uint32_t *reg, uint32_t bit){
     assert(bit < 32);
     return *reg |= (uint32_t)(1UL << bit);
 }
+
+//MACRO using Generic func to reveal the type inserted
+
 #define set_bit(reg, bit) _Generic(*(reg), \
 uint8_t: set_bit8, \
 uint16_t: set_bit16, \
@@ -33,6 +36,9 @@ static inline uint32_t toggle_bit32(uint32_t *reg, uint32_t bit){
         assert(bit < 32);
         return *reg ^= (uint32_t)(1UL << bit);
         }
+
+//.
+
 #define toggle_bit(reg, bit) _Generic(*(reg), \
 uint8_t: toggle_bit8, \
 uint16_t: toggle_bit16, \
@@ -51,6 +57,10 @@ static inline uint16_t clear_bit16(uint16_t *reg, uint16_t bit){
         assert(bit < 32);
     return *reg &= (uint32_t) ~(1UL << bit);    
     }
+
+
+//.
+
 #define clear_bit(reg, bit) _Generic(*(reg), \
 uint8_t: clear_bit8, \
 uint16_t: clear_bit16, \
@@ -69,6 +79,8 @@ static inline uint32_t read_bit32(uint32_t reg, uint32_t bit){
         assert(bit < 32);
         return (uint32_t)(reg >> bit) & 1UL;
     }
+
+//.
 #define read_bit(reg, bit) _Generic((reg), \
 uint8_t: read_bit8, \
 uint16_t: read_bit16, \
