@@ -1,5 +1,5 @@
 🧪 Register Simulation in C
-This project simulates three hardware-style registers (8-bit, 16-bit, and 32-bit) using C structs, bitfields, and unions. It is designed for low-level systems or embedded programmers who want to model register-level behavior in software.
+This project simulates three hardware-style registers (8-bit, 16-bit, and 32-bit) using C structs, bitfields, and unions. It is designed for low-level systems or embedded programmers who want to model register-level behavior in software. TESTED ON LINUX SISTEM
 
 📦 Features
 ✅ Support for 8-bit, 16-bit, and 32-bit registers.
