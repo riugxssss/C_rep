@@ -8,18 +8,26 @@
     #define ENDIAN_SYSTEM 0 //Big
 #endif
 
+#define RED "\033[1;31m"
+#define RESET "\033[0m"
+
+#define bit8 8
+#define bit16 16
+#define bit32 32
+
+
 typedef struct {
     union {
         uint8_t modifyal;
-    #if LITTLE_ENDIAN_SYSTEM
-        struct {
+    #if LITTLE_ENDIAN_SYSTEM //if little endian follow an order (portable on various system)
+        struct { 
             uint8_t enable : 1;
             uint8_t ready  : 1;
             uint8_t mode   : 2;
             uint8_t flag   : 1;
             uint8_t res    : 3;
         } bitaccess8;
-    #else
+    #else //big endian reverse follow the: 1234 rule little endian: 4321 first the LSB
         struct {
             uint8_t res    : 3;
             uint8_t flag   : 1;
@@ -84,6 +92,8 @@ typedef struct {
 
 } Registers;
 
+//Function to reveal the order in run. 
+
 void print_endian(void){
     #if ENDIAN_SYSTEM
     printf("COMPILE-TIME: Little-endian system\n");
@@ -93,30 +103,30 @@ void print_endian(void){
 }
 
 int main(void) {
-    const int bit8 = 8;
-    const int bit16 = 16;
-    const int bit32 = 32;
     Registers instance;
+    
+    print_endian();
 
-    printf("START\n");
+    printf(RED"START\n" RESET);
 
     // <8 BIT>
     instance.al.bitaccess8.res = 7;
     set_bit(&instance.al.modifyal, 0);
+    printf("[8-BIT] = ");
     print_registers(instance.al.modifyal, bit8);
 
     // <16 BIT>
     instance.ax.bitaccess16.enable = 3;
     clear_bit(&instance.ax.modifyax, 0);
+    printf("[16-BIT] = ");
     print_registers(instance.ax.modifyax, bit16);
 
     // <32 BIT>
     instance.eax.bitaccess32.status = 0x80;
     toggle_bit(&instance.eax.modifyeax, 0);
+    printf("[32-BIT] = ");
     print_registers(instance.eax.modifyeax, bit32);
 
-    printf("END\n");
+    printf(RED"END\n" RESET);
     return 0;
 }
-
-
