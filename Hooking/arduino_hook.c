@@ -8,13 +8,13 @@
 #define RED "\033[1;31m"
 #define RESET "\033[0m"
 
-static ssize_t (*realwrite)(int fd, const void *buf, size_t byte);
+static ssize_t (*realwrite)(int fd, const void *buf, size_t byte) = NULL;
 
 __attribute__((constructor))
 void hook_init(void){
 
     realwrite = dlsym(RTLD_NEXT, "write");
-    if (realwrite == NULL){
+    if (!realwrite){
         fprintf(stderr, RED "["WHITE"HOOK ERROR"RED"] "RESET"Impossible to find 'write' address: %s\n", dlerror());
         exit(EXIT_FAILURE);
     }
