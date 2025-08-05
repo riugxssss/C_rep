@@ -4,13 +4,12 @@
 int main(){
 
     int t1; 
-    int somma = 0;
+    int sum = 0;
     printf("Enter the number: ");
     scanf("%d", &t1);
     //Sum of numbers 
-    for (int i=0; i<=t1; printf("%d\n", somma+=i), i++);
+    for (int i=0; i<=t1; printf("%d\n", sum+=i), i++);
     //Ternary operator to simulate an if-else in a fast and smart way
-    char *c = (somma >= 15) ? "First face " : "Second face -le 15";
-    printf("%s", c);
+    printf("%s", sum > 15 ? "Sum is more than 15" : "Sum is less than or equal to 15");
     return 0;
 }
