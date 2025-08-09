@@ -47,6 +47,21 @@ void print_recursive(Node *root){
     print_recursive(root->next);
 }
 
+void reverse_list(Node **root){
+    if (!root || !*root) return;
+    Node *current = *root;
+    Node *tmp2 = NULL;
+    while (current){
+        tmp2 = current->prev; 
+        current->prev = current->next; //swap prev & next
+        current->next = tmp2;
+        current = current->prev;
+    }
+    if (tmp2){
+        *root = tmp2->prev;
+    }
+}
+
 void print_iterative(Node *root){
     while (root){
         printf("%d ", root->value);
@@ -91,9 +106,9 @@ int main(void){
     print_list_reverse(root);
     print_iterative(root);
     insert_at_tail(&root, 10);
+    reverse_list(&root);
     print_recursive(root);
     free_list(&root);
-
 
     return 0;
 }
