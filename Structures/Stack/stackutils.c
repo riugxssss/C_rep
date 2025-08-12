@@ -11,13 +11,15 @@ $sp AllocDyn($i containersize){
         fprintf(stderr, "[!] Failed malloc\n");
         exit(EXIT_FAILURE);
     }
-    ptrstruct->block = malloc(containersize* sizeof($i));
     ptrstruct->elementsize = 0;
     if (containersize < 1){
         ptrstruct->container = DEFAULTSIZE; //Default size
+        ptrstruct->block = malloc(sizeof(int) * DEFAULTSIZE);
     }else {
     ptrstruct->container = containersize;
+    ptrstruct->block = malloc(sizeof(int) * containersize);
     }
+
     return ptrstruct;
 }
 
@@ -72,3 +74,4 @@ void dam($sp ptrstruct, $i expand){
     ptrstruct->block = new_block; //update the ptr
     ptrstruct->container = new_container; //update the container size
 }
+
