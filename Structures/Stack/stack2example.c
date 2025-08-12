@@ -3,9 +3,9 @@
 
 // Define a stack structure
 typedef struct stack_t {
-    int *arr;       // Dynamic array to store stack elements
     int top;        // Index of the current top element (-1 means empty)
     int sizearr;    // Current capacity of the stack
+    int arr[];
 } stack_t;
 
 //Using to self explain the program without using "magic numbers"
@@ -15,18 +15,11 @@ typedef struct stack_t {
 // Create a stack with an initial size 'nsize'
 stack_t *create_arr(int nsize) {
     // Allocate memory for the stack structure
-    stack_t *ptr = malloc(sizeof(*ptr));
+    stack_t *ptr = malloc(sizeof(*ptr) + sizeof(int) * nsize);
     if (!ptr) {
         fprintf(stderr, "[!] Out of memory\n");
         exit(EXIT_FAILURE);
     }
-
-    // Allocate memory for the internal integer array
-    ptr->arr = malloc(nsize * sizeof(*ptr->arr));
-    if (!ptr->arr) {
-        fprintf(stderr, "[!] Out of memory\n");
-        exit(EXIT_FAILURE);
-    } 
 
     ptr->top = EMPTY;           // Start with stack empty
     ptr->sizearr = nsize;    // Set initial capacity
@@ -47,24 +40,10 @@ int isfull(stack_t *arr) {
 }
 
 // Push a new element 'n' onto the stack
-// If the stack is full, attempt to double its capacity (up to 30 elements max)
 void push(stack_t **arr, int n) {
     if (isfull(*arr)) {
-        if ((*arr)->sizearr >= 30) {
-            printf("Max limit realloc possible\n");
-            return;
-        }
-
-        int newsize = DOUBLESIZE(*arr); 
-        int *newarr = realloc((*arr)->arr, newsize * sizeof(int));
-        if (!newarr) {
-            printf("Array full\n [Fail to realloc]\n");
-            return;
-        }
-        (*arr)->arr = newarr;
-        (*arr)->sizearr = newsize;  // Update capacity
+        return;
     }
-
     // Insert element at top and increment top index
     (*arr)->arr[++(*arr)->top] = n;
 }
@@ -86,12 +65,6 @@ int top(stack_t *arr) {
         return 0; // Return 0 as a default value (could also handle with error code)
     }
     return arr->arr[arr->top];
-}
-
-// Free all memory used by the stack
-void free_all(stack_t *arr) {
-    free(arr->arr);  // Free the internal array
-    free(arr);       // Free the stack structure
 }
 
 // Print all elements in the stack from bottom to top
@@ -119,7 +92,6 @@ int main(void) {
     print_all(arr);
 
     // Free allocated memory
-    free_all(arr);
 
     return 0;
 }
