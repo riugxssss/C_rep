@@ -1,0 +1,15 @@
+target = bst
+
+cc= gcc
+cflags= -Wall -Wextra -g
+
+obj = main.o tree_utils.o queue_utils.o
+all:$(target)
+$(target): $(obj)
+	$(cc) $(cflags) -o $@ $^
+%.o: %.c
+	$(cc) $(cflags) -c $< 
+clean:
+	rm -f $(obj) $(target)
+
+.PHONY: all clean 
