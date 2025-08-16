@@ -5,14 +5,14 @@
 
 // Queue node structure, stores a pointer to a tree node and a pointer to the next queue node
 typedef struct QueueNode {
-    TreeNode *node;           // Pointer to a tree node
-    struct QueueNode *next;   // Pointer to the next node in the queue
+    TreeNode *node;           
+    struct QueueNode *next;  
 } QueueNode;
 
 // Queue structure, keeps track of front and rear of the queue
 typedef struct QueueStruct {
-    struct QueueNode* rear;   // Pointer to the last node in the queue
-    struct QueueNode* front;  // Pointer to the first node in the queue
+    struct QueueNode* rear;   
+    struct QueueNode* front;  
 } QueueStruct;
 
 /*
@@ -31,9 +31,6 @@ Dequeue 1 time:
 front -> [B] -> [C] <- rear
 */
 
-//////////////////////////
-// Function Declarations
-//////////////////////////
 
 // Creates and initializes an empty queue
 QueueStruct *Create_Queue();
