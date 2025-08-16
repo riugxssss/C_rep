@@ -14,7 +14,7 @@ QueueStruct *Create_Queue(){
     if (!newptr){
         fatalAlloc("create_queue"); // Handle allocation failure
     }
-    newptr->front = newptr->rear = NULL; // Initialize pointers to NULL
+    newptr->front = newptr->rear = NULL; 
     return newptr;
 }
 
@@ -24,8 +24,8 @@ QueueNode *Create_qNode(TreeNode *nodeptr){
     if (!newnode){
         fatalAlloc("create_qNode"); // Handle allocation failure
     }
-    newnode->node = nodeptr; // Store tree node pointer
-    newnode->next = NULL;    // Next pointer is NULL initially
+    newnode->node = nodeptr; 
+    newnode->next = NULL;   
     return newnode;
 }
 
@@ -38,11 +38,11 @@ int IsEmpty(QueueStruct *queueptr){
 void EnqueueNode(QueueStruct *queueptr, TreeNode *treeptr){
     QueueNode *queuenode = Create_qNode(treeptr);
     if (IsEmpty(queueptr)){
-        queueptr->front = queueptr->rear = queuenode; // First node in queue
+        queueptr->front = queueptr->rear = queuenode; 
         return;
     }
-    queueptr->rear->next = queuenode; // Link new node at the end
-    queueptr->rear = queuenode;       // Update rear pointer
+    queueptr->rear->next = queuenode; 
+    queueptr->rear = queuenode;       
 }
 
 // Remove and return the tree node from the front of the queue
@@ -50,12 +50,12 @@ TreeNode *DequeueNode(QueueStruct *queueptr){
     if (IsEmpty(queueptr)){
         return NULL; // Nothing to dequeue
     }
-    QueueNode *tmp = queueptr->front;           // Store front node temporarily
-    queueptr->front = queueptr->front->next;   // Move front pointer forward
+    QueueNode *tmp = queueptr->front;           
+    queueptr->front = queueptr->front->next;   
     if (IsEmpty(queueptr)){
-        queueptr->rear = NULL; // Queue is now empty
+        queueptr->rear = NULL; 
     }
-    TreeNode *returnNode = tmp->node; // Retrieve tree node
+    TreeNode *returnNode = tmp->node;
     free(tmp);                        // Free queue node
     return returnNode;
 }
