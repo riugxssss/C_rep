@@ -184,6 +184,29 @@ int IsaBSTMinMax(TreeNode *root){
     return MinMaxCheck(root, INT_MIN, INT_MAX);
 }
 
+TreeNode *GetSuccessor(TreeNode *root, int data){
+    //Search the node O(h)
+    TreeNode *curr = SearchNode(root, data);
+    if (!curr) return NULL;
+    if (curr->right){
+        return Find_Min(curr->right); //Case 1 node has the right subtree
+    
+    }else { //Case 2 no right subtree
+        TreeNode *ancestor = root;
+        TreeNode *successor = NULL;
+        while (ancestor != curr){
+            if (curr->data < ancestor->data){
+                successor = ancestor;
+                ancestor = ancestor->left;
+            }else {
+                ancestor = ancestor->right; //if the curr->node is greater than root the node is in the
+                                            //root right subtree
+            } 
+        }
+        return successor;
+    }
+}
+
 // Delete a node from BST
 TreeNode *Delete_Node(TreeNode *root, int data){
     if (!root) return root;
@@ -204,7 +227,7 @@ TreeNode *Delete_Node(TreeNode *root, int data){
             root = root->left;
             free(tmp);
         } else { // two children
-            tmp = Find_Min(root->right); // find inorder successor
+            tmp = GetSuccessor(root, root->data);
             root->data = tmp->data; // replace data
             root->right = Delete_Node(root->right, tmp->data); // delete successor
         }
