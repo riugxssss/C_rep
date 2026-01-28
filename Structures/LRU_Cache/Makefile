@@ -1,35 +1,36 @@
+# Compiler and flags
+CC = gcc
+CFLAGS = -Wall -Wextra -Iinclude
 
-CC      := gcc
-CFLAGS  := -Wall -Wextra -g -O2 -Iinclude
+# Directories
+SRC_DIR = src
+BUILD_DIR = build
+BIN_DIR = bin
 
-SRC_DIR := src
-OBJ_DIR := obj
-BIN_DIR := bin
-TARGET  := $(BIN_DIR)/main
+# Target executable
+TARGET = $(BIN_DIR)/my_program
 
-SRC     := $(wildcard $(SRC_DIR)/*.c)
-OBJ     := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC))
+# List of source files
+SRCS = $(wildcard $(SRC_DIR)/*.c)
 
+# Convert source files to object files in build directory
+OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
+# Default target
 all: $(TARGET)
 
-$(TARGET): $(OBJ) | $(BIN_DIR)
-	$(CC) $(CFLAGS) $(OBJ) -o $@
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+# Link object files into the final executable
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+# Compile each .c into a .o
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
-
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
-
-
+# Clean build artifacts
 clean:
-	rm -rf $(OBJ_DIR)/*.o $(TARGET) *.txt
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
-
-distclean: clean
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
-
-.PHONY: all clean distclean
+# Phony targets
+.PHONY: all clean
